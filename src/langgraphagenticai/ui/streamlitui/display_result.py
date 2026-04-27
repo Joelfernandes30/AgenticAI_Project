@@ -23,3 +23,29 @@ class DisplayResultStreamlit:
                             st.write(user_message)
                         with st.chat_message("assistant"):
                             st.write(value["messages"].content)
+
+        elif usecase=="Chatbot With Web":
+             # Prepare state and invoke the graph
+            initial_state = {"messages": [user_message]}
+            res = graph.invoke(initial_state)
+            for message in res['messages']:
+                if type(message) == HumanMessage:
+                    with st.chat_message("user"):
+                        st.write(message.content)
+                elif type(message)==ToolMessage:
+                    with st.chat_message("assistant"):
+                        with st.expander("Web Search Results"):
+                            try:
+                                results = json.loads(message.content)
+                                if isinstance(results, list):
+                                    for idx, res in enumerate(results):
+                                        st.markdown(f"**{idx+1}. [{res.get('title', 'Source')}]({res.get('url', '#')})**")
+                                        st.write(res.get('content', 'No content available.'))
+                                        st.divider()
+                                else:
+                                    st.write(message.content)
+                            except Exception:
+                                st.write(message.content)
+                elif type(message)==AIMessage and message.content:
+                    with st.chat_message("assistant"):
+                        st.write(message.content)
